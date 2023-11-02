@@ -1,28 +1,29 @@
 clc
 clear
-
+GC = general_configs();
 %% set the version
-v = '3';
-if ispc
-    root_path = 'C:\Users\acuna\OneDrive - Universitaet Bern\Coding_playground\Anna_playground\';
-else
-    keyboard
-end
+version = '3';
+rootpath = GC.repo_path; 
+% if ispc
+%     root_path = 'C:\Users\acuna\OneDrive - Universitaet Bern\Coding_playground\Anna_playground\';
+% else
+%     keyboard
+% end
 
-cd(root_path)
-addpath(genpath('Scripts\utilities'))
+addpath(genpath('Object_detection_scripts\utilities'))
 
 % load data
-gTruth_file =['gTruth', num2str(v), '.mat'];
-gTruth = load(fullfile(root_path, gTruth_file));
+root_path_data = GC.temp_data_path;
+gTruth_file =['gTruth', num2str(version), '.mat'];
+gTruth = load(fullfile(root_path_data, gTruth_file));
 gTruth = gTruth.gTruth;
 
 % get the training data
-training_folder = fullfile(root_path, 'training', ['v',num2str(v)]);
+training_folder = fullfile(root_path_data, 'training', ['v',num2str(version)]);
 if ~exist(training_folder, 'dir')
     mkdir(training_folder)
 end
-[imds,bxds] = objectDetectorTrainingData(gTruth, 'WriteLocation', ['C:\Users\acuna\OneDrive - Universitaet Bern\Coding_playground\Anna_playground\training\v',num2str(v)]);%Combine the datastores.
+[imds,bxds] = objectDetectorTrainingData(gTruth, 'WriteLocation', ['C:\Users\acuna\OneDrive - Universitaet Bern\Coding_playground\Anna_playground\training\v',num2str(version)]);%Combine the datastores.
 ds = combine(imds,bxds);
 
 
@@ -101,7 +102,7 @@ showShape("rectangle", bbox, Label=label)
 % Set parameters for Training
 opts = trainingOptions("rmsprop",...
         InitialLearnRate=0.001,...
-        MiniBatchSize=120,...
+        MiniBatchSize=4,...
         MaxEpochs=100,...
         LearnRateSchedule="none",... %'piecewise'
         LearnRateDropPeriod=5,...
@@ -120,12 +121,12 @@ opts = trainingOptions("rmsprop",...
 
 
 % save detector
-detector_filename = ['detector_v', (v), '.mat'];
-detector_path = fullfile(root_path, 'detectors');
+detector_filename = ['detector_v', (version), '.mat'];
+detector_path = fullfile(root_path_data, 'detectors');
 if ~exist(detector_path, 'dir')
     mkdir(detector_path)
 end
-save(fullfile(detector_path, detector_filename), 'detector')
+save(fullfile(detector_path, detector_filename), 'detector', ')
 
 % % get the results from test samples
 % detectionThreshold = 0.01;

@@ -1,7 +1,7 @@
 
-version = '3';
-load_detector = false;
-debug = 1;
+version = '3_2';
+load_detector = true;
+debug = 0;
 % in case of debugging or just observing how the model worked:
 
 if debug == 1
@@ -16,6 +16,9 @@ else
 
 end
 
+%% Do not modify
+
+
 video_folder = 'C:\Users\acuna\OneDrive - Universitaet Bern\Coding_playground\Anna_playground\videos\cropped'; % folder where the video is stored
 video_name = 'left_cropped_RGB_577_580'; % name of the video
 video_format = '.mp4'; % format of the video
@@ -28,7 +31,7 @@ if isempty(end_frame)
 end
 % load detector
 if load_detector == 1
-    detector_filename = ['detector_v', (version), 'yolo_Large.mat'];
+    detector_filename = ['detector_v', (version), '.mat'];
     detector_path = fullfile(root_path, 'detectors');
     load(fullfile(detector_path, detector_filename), 'detector')
 end
@@ -36,7 +39,7 @@ end
 
 if write_video == 1
     % Init video Writer
-    video_to_write = fullfile(video_folder, [video_name, 'detector_v_', v, video_format]);
+    video_to_write = fullfile(video_folder, [video_name, 'detector_v_', version, video_format]);
     v = VideoWriter(video_to_write, 'MPEG-4');
     open(v);
     disp('## Writing Video ##')
@@ -51,7 +54,7 @@ detectedBoxes = {};
 % detectionThreshold = 0.179;
 detectionThreshold = 0.18;
 % Network input size
-input_size = detector.TrainingImageSize;
+inputSize = detector.TrainingImageSize;
 % inputSize = [720 720 3];
 
 figure
@@ -110,8 +113,9 @@ for iframe = start_frame:end_frame
         % end
 
        
-        % write video   
-        writeVideo(v, gca);
+        % write video 
+        frame_to_write = getframe(gca);
+        writeVideo(v, frame_to_write);
     end
        
 end
@@ -120,4 +124,14 @@ if write_video == 1
     % close video
     close(v);
 end 
-disp('done')
+
+% Save detectors
+if ~debug
+    detected_labels_filename =  fullfile(root_path, 'stimuli_detected', ['detected_labels_v', version, '.mat']);
+    if ~exist(fullfile(root_path, 'stimuli_detected'), 'dir')
+        mkdir(fullfile(root_path, 'stimuli_detected'))
+    end
+    save(detected_labels_filename, "detectedLabels", "detectedBoxes")
+    disp(['Labels saved in :', detected_labels_filename])
+end
+disp('done!')
