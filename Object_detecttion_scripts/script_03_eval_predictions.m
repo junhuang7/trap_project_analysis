@@ -1,5 +1,8 @@
 %% Preamble
 % This script will evaluate the label predictions
+% load configs
+global GC
+GC = general_configs();
 
 % Load predictions
 if ispc

@@ -14,7 +14,7 @@ function config = general_configs()
         [~, repo_name] = fileparts(repo_path);
         
         % Define the root path for temporal data storage in OneDrive on Windows
-        temp_data_path = fullfile(user_home, 'OneDrive - Universitaet Bern', '_temp_', repo_name);
+        temp_data_path = fullfile('D:/', ['_temp_', repo_name]);
         
     elseif ismac
         os_type = 'Mac';

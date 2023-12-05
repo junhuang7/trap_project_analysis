@@ -1,3 +1,6 @@
+% load configs
+global GC
+GC = general_configs();
 
 version = '3_2';
 load_detector = true;
@@ -8,21 +11,25 @@ if debug == 1
     start_frame = 1200;
     end_frame = 3000;
     write_video = 0; % 1 if you want to write a video, 0 if not
-
+    fig_visible = true;
 else
     start_frame = 1;
     end_frame = [];
     write_video = 1; % 1 if you want to write a video, 0 if not
+    fig_visible = false;
 
 end
 
 %% Do not modify
 
+% ask user to input the video
+[video_name, video_folder] = uigetfile({'*.avi';'*.mp4'}, 'Select the video file');
 
-video_folder = 'C:\Users\acuna\OneDrive - Universitaet Bern\Coding_playground\Anna_playground\videos\cropped'; % folder where the video is stored
-video_name = 'left_cropped_RGB_577_580'; % name of the video
-video_format = '.mp4'; % format of the video
-videoFile = fullfile(video_folder, [video_name, video_format]); % path to the video
+%video_folder = 'C:\Users\acuna\OneDrive - Universitaet Bern\Coding_playground\Anna_playground\videos\cropped'; % folder where the video is stored
+%video_name = 'left_cropped_RGB_577_580_less_highlight.mp4'; % name of the video
+
+video_format = '.avi'; % format of the video
+videoFile = fullfile(video_folder, [video_name]); % path to the video
 
 % load the video
 vid = VideoReader(videoFile);
@@ -31,7 +38,10 @@ if isempty(end_frame)
 end
 % load detector
 if load_detector == 1
-    detector_filename = ['detector_v', (version), '.mat'];
+    %root_path  = 'C:\Users\acuna\OneDrive - Universitaet Bern\Coding_playground\Anna_playground\';
+    root_path  = GC.repo_path;
+
+    detector_filename =  ['detector_v', (version), '.mat'];
     detector_path = fullfile(root_path, 'detectors');
     load(fullfile(detector_path, detector_filename), 'detector')
 end
@@ -57,7 +67,7 @@ detectionThreshold = 0.18;
 inputSize = detector.TrainingImageSize;
 % inputSize = [720 720 3];
 
-figure
+fig = figure('Visible', fig_visible);
 % Process video frame by frame
 for iframe = start_frame:end_frame
 
@@ -67,15 +77,26 @@ for iframe = start_frame:end_frame
     resizedFrame = imresize(frame, inputSize(1:2));
     % Perform object detection
     [bboxes, scores, labels] = detect(detector, resizedFrame, MiniBatchSize=8, Threshold=detectionThreshold);
-    
-    % Filter out detections below the threshold
-    validIdx = scores > detectionThreshold;
-    % Select only the max score bbox
-    if validIdx
-        validIdx = find (ismember(scores,max(scores)));
-        has_label = 1;
-    end
 
+    % check if vF_purple is present. If so, label it as such, because so
+    % far, up to v3_2 this is not well recognized
+    if any(ismember(labels, 'vF_purple')) && any(scores(ismember(labels, 'vF_purple')) > 0.3)
+        validIdx = find(ismember(labels, 'vF_purple'));
+         if validIdx
+            validIdx = find (ismember(scores,max(scores(ismember(labels, 'vF_purple')))));
+            has_label = 1;
+         end
+    else
+
+
+        % Filter out detections below the threshold
+        validIdx = scores > detectionThreshold;
+        % Select only the max score bbox
+        if validIdx
+            validIdx = find (ismember(scores,max(scores)));
+            has_label = 1;
+        end
+    end
     bboxes = bboxes(validIdx, :);
     labels = labels(validIdx);
 
@@ -96,8 +117,8 @@ for iframe = start_frame:end_frame
     % end
     % 
     % drawnow; % Update the figure window
-    if has_label
-        imshow(annotatedFrame);
+    if has_label 
+        ax=imshow(annotatedFrame);
         title([num2str(iframe),  '-', labels(1)])
         drawnow; % Update the figure window
         
@@ -114,7 +135,7 @@ for iframe = start_frame:end_frame
 
        
         % write video 
-        frame_to_write = getframe(gca);
+        frame_to_write = getframe(fig);
         writeVideo(v, frame_to_write);
     end
        
@@ -122,7 +143,7 @@ end
 
 if write_video == 1
     % close video
-    close(v);
+    close(v)
 end 
 
 % Save detectors
