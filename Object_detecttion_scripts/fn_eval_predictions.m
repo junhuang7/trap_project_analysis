@@ -1,8 +1,9 @@
+function fn_eval_predictions(detectedLabels, prediction_names, predictions_loc)
 %% Preamble
 % This script will evaluate the label predictions
 % load configs
 global GC
-GC = general_configs();
+% GC = general_configs();
 
 % Load predictions
 % if ispc
@@ -11,10 +12,10 @@ GC = general_configs();
 %     rootpath = '/Users/marioacuna/Library/CloudStorage/OneDrive-UniversitaetBern/Coding_playground/Anna_playground';
 % end
 
-[prediction_names , predictions_loc] = uigetfile('.mat', 'predictions', 'H:\Mario\BioMed_students_2023\Anna\TRAP experiment\stimuli_detected');
+% [prediction_names , predictions_loc] = uigetfile('.mat', 'predictions', 'H:\Mario\BioMed_students_2023\Anna\TRAP experiment\stimuli_detected');
 % predictions_filename = 'detected_labels_v3.mat';
-predictions_fullname = fullfile(predictions_loc, prediction_names);
-load(predictions_fullname);
+% predictions_fullname = fullfile(predictions_loc, prediction_names);
+% load(predictions_fullname);
 
 %% Evaluate predictions
 % Load ground truth
@@ -113,8 +114,8 @@ outputFileName = [prediction_names, '.csv'];
 outputFullPath = fullfile(predictions_loc, 'Yolo_predictions', outputFileName);
 
 % Check if the output folder exists, if not, create it
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
+if ~exist(fullfile(predictions_loc, 'Yolo_predictions'), 'dir')
+    mkdir(fullfile(predictions_loc, 'Yolo_predictions'));
 end
 
 % Write the table to a CSV file
