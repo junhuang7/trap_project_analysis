@@ -18,7 +18,7 @@ if debug == 1
 
     [fi, videos_root]= uigetfile('.mp4', 'Get the video', '');
     d_v ={fi};
-
+    do_paralell = 0;
 
 else
     start_frame = 1;
@@ -33,6 +33,7 @@ else
     d_v = {d_v.name};
     d_v(ismember(d_v, {'.', '..'})) = [];
     d_v = d_v(endsWith(d_v, '.mp4'));
+    do_parallel = 1;
    
 
 end
@@ -51,7 +52,7 @@ end
 
 % to fix later
 video_folder = videos_root;
-parfor iv = 12:15%n_vids
+for iv = 12:n_vids
 
     % ask user to input the video
     % [video_name, video_folder] = uigetfile({'*.avi';'*.mp4'}, 'Select the video file');
@@ -101,93 +102,99 @@ parfor iv = 12:15%n_vids
     inputSize = detector.TrainingImageSize;
     % inputSize = [720 720 3];
 
-    fig = figure('Visible', fig_visible);
-    % Process video frame by frame
-    tic
-    iframe = 0;
-    while hasFrame(vid) 
-    % for iframe = start_frame:end_frame
-        iframe= iframe+1;
-        
-        has_label = 0; % write video for only the ones with labels
-        % frame = read(vid, iframe);
+    if do_parallel
+        run_detection_parallel
+    else
+        fig = figure('Visible', fig_visible);
+        % Process video frame by frame
+        tic
+        % iframe = 0;
+        % while hasFrame(vid)
+        for iframe = start_frame:end_frame
+            % iframe= iframe+1;
 
-        frame = readFrame(vid); % Read the current frame
-        resizedFrame = imresize(frame, inputSize(1:2));
-        % Perform object detection
-        [bboxes, scores, labels] = detect(detector, resizedFrame, MiniBatchSize=8, Threshold=detectionThreshold);
+            has_label = 0; % write video for only the ones with labels
+            frame = read(vid, iframe);
 
-        % check if vF_purple is present. If so, label it as such, because so
-        % far, up to v3_2 this is not well recognized
-        if any(ismember(labels, 'vF_purple')) && any(scores(ismember(labels, 'vF_purple')) > 0.3)
-            validIdx = find(ismember(labels, 'vF_purple'));
-            if validIdx
-                validIdx = find (ismember(scores,max(scores(ismember(labels, 'vF_purple')))));
-                has_label = 1;
+            % frame = readFrame(vid); % Read the current frame
+            resizedFrame = imresize(frame, inputSize(1:2));
+
+
+
+            % Perform object detection
+            [bboxes, scores, labels] = detect(detector, resizedFrame, MiniBatchSize=8, Threshold=detectionThreshold);
+
+            % check if vF_purple is present. If so, label it as such, because so
+            % far, up to v3_2 this is not well recognized
+            if any(ismember(labels, 'vF_purple')) && any(scores(ismember(labels, 'vF_purple')) > 0.3)
+                validIdx = find(ismember(labels, 'vF_purple'));
+                if validIdx
+                    validIdx = find (ismember(scores,max(scores(ismember(labels, 'vF_purple')))));
+                    has_label = 1;
+                end
+            else
+
+
+                % Filter out detections below the threshold
+                validIdx = scores > detectionThreshold;
+                % Select only the max score bbox
+                if validIdx
+                    validIdx = find (ismember(scores,max(scores)));
+                    has_label = 1;
+                end
             end
-        else
+            bboxes = bboxes(validIdx, :);
+            labels = labels(validIdx);
 
 
-            % Filter out detections below the threshold
-            validIdx = scores > detectionThreshold;
-            % Select only the max score bbox
-            if validIdx
-                validIdx = find (ismember(scores,max(scores)));
-                has_label = 1;
-            end
-        end
-        bboxes = bboxes(validIdx, :);
-        labels = labels(validIdx);
+            % Store results
+            detectedLabels{1,end+1} = labels;
+            % store frames in detectedLabels in the second row
+            detectedLabels{2,end} = iframe;
+            % detectedBoxes{end+1} = bboxes;
 
-
-        % Store results
-        detectedLabels{1,end+1} = labels;
-        % store frames in detectedLabels in the second row
-        detectedLabels{2,end} = iframe;
-        detectedBoxes{end+1} = bboxes;
-
-        % Optionally, visualize the detection results
-        annotatedFrame = insertObjectAnnotation(resizedFrame, 'rectangle', bboxes, cellstr(labels), 'Color', 'yellow');
-        % imshow(annotatedFrame);
-        % if ~isempty(labels)
-        %     title([num2str(iframe),  '-', labels(1)])
-        % else
-        %     title([num2str(iframe),  '-'])
-        % end
-        %
-        % drawnow; % Update the figure window
-        if has_label
-            ax=imshow(annotatedFrame);
-            title([num2str(iframe),  '-', labels(1)])
-            drawnow; % Update the figure window
-
-        end
-
-
-        if write_video == 1 && has_label && iv ==12
-
+            % Optionally, visualize the detection results
+            annotatedFrame = insertObjectAnnotation(resizedFrame, 'rectangle', bboxes, cellstr(labels), 'Color', 'yellow');
+            % imshow(annotatedFrame);
             % if ~isempty(labels)
             %     title([num2str(iframe),  '-', labels(1)])
             % else
             %     title([num2str(iframe),  '-'])
             % end
+            %
+            % drawnow; % Update the figure window
+            if has_label
+                ax=imshow(annotatedFrame);
+                title([num2str(iframe),  '-', labels(1)])
+                drawnow; % Update the figure window
+
+            end
 
 
-            % write video
-            frame_to_write = getframe(fig);
-            writeVideo(v, frame_to_write);
+            if write_video == 1 && has_label && iv ==12
+
+                % if ~isempty(labels)
+                %     title([num2str(iframe),  '-', labels(1)])
+                % else
+                %     title([num2str(iframe),  '-'])
+                % end
+
+
+                % write video
+                frame_to_write = getframe(fig);
+                writeVideo(v, frame_to_write);
+            end
+
+            % if iframe == 57600 % it took 4201 s
+            %     keyboard
+            % end
         end
-        
-        % if iframe == 57600 % it took 4201 s
-        %     keyboard
-        % end
+        toc
+        if write_video == 1 && iv == 12
+            % close video
+            close(v)
+        end
     end
-    toc
-    if write_video == 1 && iv == 12
-        % close video
-        close(v)
-    end
-
     % Save detectors
     if debug == 0
         % detected_labels_filename =  fullfile('H:\Mario\BioMed_students_2023\Anna\TRAP experiment', 'stimuli_detected', [video_filename,'_','model_v', version, '.mat']);
