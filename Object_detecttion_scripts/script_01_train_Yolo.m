@@ -23,7 +23,7 @@ training_folder = fullfile(root_path_data, 'training', ['v',num2str(version)]);
 if ~exist(training_folder, 'dir')
     mkdir(training_folder)
 end
-[imds,bxds] = objectDetectorTrainingData(gTruth, 'WriteLocation', ['C:\Users\acuna\OneDrive - Universitaet Bern\Coding_playground\Anna_playground\training\v',num2str(version)]);%Combine the datastores.
+[imds,bxds] = objectDetectorTrainingData(gTruth, 'WriteLocation', ['H:\Mario\BioMed_students_2023\Anna\Playground\YOLO_paincohort\img']);%Combine the datastores.
 ds = combine(imds,bxds);
 
 
@@ -126,7 +126,7 @@ detector_path = fullfile(root_path_data, 'detectors');
 if ~exist(detector_path, 'dir')
     mkdir(detector_path)
 end
-save(fullfile(detector_path, detector_filename), 'detector', ')
+save(fullfile(detector_path, detector_filename), 'detector', 'info')
 
 % % get the results from test samples
 % detectionThreshold = 0.01;

@@ -52,7 +52,7 @@ end
 
 % to fix later
 video_folder = videos_root;
-for iv = 12:n_vids
+for iv = 15:n_vids
 
     % ask user to input the video
     % [video_name, video_folder] = uigetfile({'*.avi';'*.mp4'}, 'Select the video file');
