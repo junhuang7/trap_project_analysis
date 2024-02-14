@@ -3,9 +3,9 @@ clear; clc
 global GC
 GC = general_configs();
 close all
-version = '3_2';
+version = 'X';
 load_detector = true;
-debug = 0;
+debug = 1;
 % threshold = 0.145; % 0.18 for v_2
 threshold = 0.18; % 0.23
 
@@ -18,7 +18,7 @@ if debug == 1
 
     [fi, videos_root]= uigetfile('.mp4', 'Get the video', '');
     d_v ={fi};
-    do_paralell = 0;
+    do_parallel = 0;
 
 else
     start_frame = 1;
@@ -52,7 +52,7 @@ end
 
 % to fix later
 video_folder = videos_root;
-for iv = 15:n_vids
+for iv = 1:n_vids
 
     % ask user to input the video
     % [video_name, video_folder] = uigetfile({'*.avi';'*.mp4'}, 'Select the video file');
@@ -69,9 +69,9 @@ for iv = 15:n_vids
     % load the video
     vid = VideoReader(videoFile);
     
-    % if isempty(end_frame)
+    if isempty(end_frame)
         end_frame = vid.NumFrames;
-    % end
+    end
 
     
 
@@ -99,7 +99,7 @@ for iv = 15:n_vids
     % detectionThreshold = 0.179;
     detectionThreshold = threshold;
     % Network input size
-    inputSize = detector.TrainingImageSize;
+    inputSize = detector.InputSize;
     % inputSize = [720 720 3];
 
     if do_parallel
@@ -126,6 +126,7 @@ for iv = 15:n_vids
 
             % check if vF_purple is present. If so, label it as such, because so
             % far, up to v3_2 this is not well recognized
+            
             if any(ismember(labels, 'vF_purple')) && any(scores(ismember(labels, 'vF_purple')) > 0.3)
                 validIdx = find(ismember(labels, 'vF_purple'));
                 if validIdx
@@ -164,6 +165,7 @@ for iv = 15:n_vids
             %
             % drawnow; % Update the figure window
             if has_label
+                keyboard
                 ax=imshow(annotatedFrame);
                 title([num2str(iframe),  '-', labels(1)])
                 drawnow; % Update the figure window
