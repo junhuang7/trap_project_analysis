@@ -1,4 +1,4 @@
-%% Preamble
+% % Preamble
 %{
 This script is used to crop a video based on a rectangle selected by the
 user. The cropped video is saved in the same directory as the original
@@ -93,9 +93,8 @@ while hasFrame(videoObj)
     % crop
     croppedFrame = imcrop(currentFrame, rect);
 
-    % fixed the axes and make them saquare
-    croppedFrame = imresize(croppedFrame, [1080 1080]);
-    % croppedFrame = imresize(croppedFrame, [1080 1920]);
+    % Reduce resolution by 4 folds (scale down both dimensions by 0.5)
+    croppedFrame = imresize(croppedFrame, 0.25);
 
     % update waitbar
     waitbar(videoObj.CurrentTime/videoObj.Duration, h);
@@ -108,6 +107,5 @@ close(outputVideo);
 
 % close waitbar
 close(h);
-
 
 disp(['Cropped video saved as: ', outputVideoPath]);
