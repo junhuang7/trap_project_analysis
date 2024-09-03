@@ -12,15 +12,3 @@ If you want to test the Yolo network run script_02_test_with_video.m inside the 
 :construction: **Currently Under Development** :construction:
 
 We're actively working on adding more features and improvements. Stay tuned for updates!
-
-## Contributions 🤝
-
-If you'd like to contribute, please contact me or just describe your contributions.
-
-## Feedback and Questions 📬
-
-For feedback or questions, please email me to [mario.acuna@unibe.ch].
-
----
-
-© [2023] [Mario A. Acuña - University of Bern]. All Rights Reserved.
