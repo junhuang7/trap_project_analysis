@@ -22,6 +22,10 @@ def ask_for_video_path():
 
 
 def select_crop_regions(frame):
+    # Initialize resizable window for crop region selection
+    cv2.namedWindow('Frame', cv2.WINDOW_NORMAL)  # Create a window that can be resized
+    cv2.resizeWindow('Frame', 800, 600)  # Default window size
+
     regions = []  # To store regions defined by the user
     current_region = []  # To store the current region being drawn
 
@@ -35,16 +39,14 @@ def select_crop_regions(frame):
                 cv2.polylines(frame, [np.array(current_region)], False, (255, 0, 0), 2)
             cv2.imshow('Frame', frame)  # Show the updated frame
 
-    cv2.namedWindow('Frame')
     cv2.setMouseCallback('Frame', mouse_click)
 
-    print("Draw a region. Press 'n' to complete the region, 'ESC' to finish.")
+    print("Draw a region. Press 'ENTER' to complete the region, 'ESC' to finish.")
     while True:
         cv2.imshow('Frame', frame)
         key = cv2.waitKey(1) & 0xFF
 
         if key == ord('\n') or key == ord('\r'):  # Handles Enter key for different OS
-             # Press 'n' to complete the current region
             if len(current_region) > 2:  # A valid polygon requires at least 3 points
                 # Automatically close the polygon by connecting the last point to the first
                 if current_region[-1] != current_region[0]:
@@ -56,7 +58,6 @@ def select_crop_regions(frame):
                 cv2.imshow('Frame', frame)  # Show the frame with the completed polygon
             else:
                 print("A polygon must have at least 3 points.")
-                
         elif key == 27:  # ESC key to finish
             break
 
@@ -69,8 +70,14 @@ def initialize_ffmpeg_process(region,output_path, fps):
     # Adjust dimensions for H.264 compatibility
     w -= w % 2
     h -= h % 2
+
+    # check if it's  PC or Mac
+    if os.name == 'nt':
+        ffmpeg_command = "M:\\Software\FFmpeg\\bin\\ffmpeg.exe"
+    else:
+        ffmpeg_command = 'ffmpeg' # Assuming 'ffmpeg' is in PATH
   
-    command = ['ffmpeg',
+    command = [ffmpeg_command,
            '-y',
            '-f', 'rawvideo',
            '-vcodec', 'rawvideo',
